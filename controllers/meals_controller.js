@@ -5,86 +5,61 @@ var Meal = require("../models/meal.js"),
 	MealsController = {};
 
 MealsController.index = function (req, res) { 
-	console.log("Вызван MealsController.index");
-	var username = req.params.username || null,
-		respondWithMeals;
-	respondWithMeals = function (query) {
-		Meal.find(query, function (err, meals) {
-			if (err !== null) {
-				res.json(500, err);
-			} else {
-				res.status(200).json(meals);
-			}
-		});
-	};
-	if (username !== null) {
-		console.log("Поиск пользователя: "+username);
-		User.find({"username": username}, function (err, result) {
-			if (err !== null) {
-				res.json(500, err);
-			} else if (result.length === 0) {
-				res.status(404).json({"result_length": 0});
-			} else {
-				respondWithMeals({"owner": result[0]._id});
-			}
-		});
-	} else {
-		respondWithMeals({});
-	}
+	console.log('Вызвано действие: MealsController.index');
+	Meal.find(function (err, meals) {
+		if (err !== null) { res.json(500, err); } 
+		else { res.status(200).json(meals); }
+	});	
 };
 
 MealsController.create = function (req, res) {
-	var username = req.params.username || null;
-	var newMeal = new Meal({
-		"description": req.body.description,
-		"status" : req.body.status,
-		"price" : req.body.price,
-		"tags": req.body.tags
-	});
-	
-	console.log("username: " + username);
 
-	User.find({"username": username}, function (err, result) {
-		if (err) {
-			res.send(500);
-		} else {
-			if (result.length === 0) {
-				newMeal.owner = null;
-			} else {
-				newMeal.owner = result[0]._id;
-			}
+	console.log('Вызвано действие: создать блюдо ' + req.body.description);
+	var description = req.body.description;
+	 	status = req.body.status,
+	 	price = req.body.price,
+	 	tags = req.body.tags,
+		pathToImg = req.body.pathToImg;
+
+	Meal.find({"description": description}, function (err, result) {
+	    if (err) { console.log(err); res.send(500, err); } 
+		else if (result.length !== 0) {
+			res.status(501).send("Блюдо уже существует");
+	        console.log(err);   
+	        console.log("Блюдо уже существует"); 
+	    } 
+		else {
+			// создание нового блюда
+			var newMeal = new Meal({
+				"description": description,
+				"status" : status,
+				"price" : price,
+				"tags": tags,
+				"pathToImg" : pathToImg,
+				"owner" : null
+			});
 			newMeal.save(function (err, result) {
 				console.log(result);
-				if (err !== null) {
-					// элемент не был сохранен!
-					console.log(err);
-					res.json(500, err);
-				} else {
-					res.status(200).json(result);
-				}
+				if (err !== null) { console.log(err); res.json(500, err); } 
+				else { res.status(200).json(result); }
 			});
-		}
-	});
+	    }
+	}); 
+
 
 };
 
 MealsController.show = function (req, res) {
+	console.log('Вызвано действие: отобразить блюдо ' + req.params.description);
 	// это ID, который мы отправляем через URL
 	var id = req.params.id;
-	// находим элемент списка задач с соответствующим ID 
+	// находим блюдом с этим ID 
 	Meal.find({"_id":id}, function (err, Meal) {
-		if (err !== null) {
-			// возвращаем внутреннюю серверную ошибку 
-			console.log("ОШИБКА ТУТ");
-			res.status(500).json(err);
-		} else {
-			if (Meal.length > 0) {
-				// возвращаем успех!
-				res.status(200).json(Meal[0]);
-			} else {
-				// мы не нашли элемент списка задач с этим ID! 
-				res.send(404);
-			}
+		if (err) { console.log(err); } 
+		else if (err !== null) { res.status(500).json(err); } 
+		else {
+			if (Meal.length !== 0) { res.status(200).json(Meal[0]); } 
+			else { res.sendStatus(404); }
 		}
 	});
 };
@@ -92,30 +67,23 @@ MealsController.show = function (req, res) {
 MealsController.destroy = function (req, res) {
 	var id = req.params.id;
 	Meal.deleteOne({"_id": id}, function (err, Meal) {
-		if (err !== null) {
-			res.status(500).json(err);
-		} else {
-			if (Meal.n === 1 && Meal.ok === 1 && Meal.deletedCount === 1) {
-				res.status(200).json(Meal);
-			} else {
-				res.status(404).json({"status": 404});
-			}
+		if (err !== null) { res.status(500).json(err); } 
+		else {
+			if (Meal.n === 1 && Meal.ok === 1 && Meal.deletedCount === 1) { res.status(200).json(Meal); } 
+			else { res.status(404).json({"status": 404}); }
 		}
 	});
 }
 
 MealsController.update = function (req, res) {
 	var id = req.params.id;
-	var newDescription = {$set: {description: req.body.description, status: req.body.status}};
+	console.log('Вызвано действие: обновить блюдо ' + id);
+	var newDescription = {$set: {description: req.body.description, status: req.body.status, owner: req.body.owner || null}};
 	Meal.updateOne({"_id": id}, newDescription, function (err,Meal) {
-		if (err !== null) {
-			res.status(500).json(err);
-		} else {
-			if (Meal.n === 1 && Meal.nModified === 1 && Meal.ok === 1) {
-				res.status(200).json(Meal);
-			} else {
-				res.status(404).json({"status": 404});
-			}
+		if (err !== null) { res.status(500).json(err); } 
+		else {
+			if (Meal.n === 1 && Meal.nModified === 1 && Meal.ok === 1) { res.status(200).json(Meal); } 
+			else { res.status(404).json({"status": 404}); }
 		}
 	});
 }
