@@ -49,8 +49,6 @@ MenuController.show = function (req, res) {
 	});
 };
 
-
-
 MenuController.destroy = function (req, res) {
 	var id = req.params.id;
 	console.log("Вызвано действие: удалить меню " + id);

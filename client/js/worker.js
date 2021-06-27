@@ -1,3 +1,4 @@
+// сортировка всех блюд по ингредиентам
 var organizeByTags = function (mealObjects) { 
 	// создание пустого массива для тегов
 	var tags = [];
@@ -28,6 +29,7 @@ var organizeByTags = function (mealObjects) {
 	return tagObjects;
 };
 
+// формирование строки "Блюдо" со всей информацией и кнопками действия
 var addMealToMenu = function (Receipt, callback) {
 	var $mealListItem = $("<li>").text(Receipt.description),
 		$mealEditLink = $("<a>").attr("href", "/meals/" + Receipt._id),
@@ -87,7 +89,7 @@ var main = function (mealObjects) {
 	// создание пустого массива с вкладками
 	var tabs = [];
 
-	// добавляем вкладку Меню
+	// добавляем вкладку "Все наши меню"
 	tabs.push({
 		"name": "Все наши меню",
 		"content": function(callback) {
@@ -106,7 +108,6 @@ var main = function (mealObjects) {
 			});
 
 			$.getJSON("/meals.json", function (mealsObjects) {	
-				console.log("вызов 2");
 				for (var i = arr.length-1; i>=0; i--) {
 					var $textInput = $("<h3>").text(arr[i].nameOfMenu);
 					$textInput.addClass("nameOfMenu");
@@ -114,9 +115,7 @@ var main = function (mealObjects) {
 					$content.append($textInput);
 					for (var j = 0; j<=mealsObjects.length-1; j++) {
 						if (mealsObjects[j].owner == id) {
-							console.log("вызов 3");
 							var $mealListItem = addMealToMenu(mealsObjects[j], function() {
-								console.log("вызов 4");
 								$(".tabs a:first-child span").trigger("click");
 								console.log("есть нажатие");
 							});
@@ -142,7 +141,7 @@ var main = function (mealObjects) {
 		}
 	});
 
-	// добавляем вкладку Сегодня в меню
+	// добавляем вкладку "Сегодня в продаже"
 	tabs.push({
 		"name": "Сегодня в продаже",
 		"content": function(callback) {
@@ -170,7 +169,7 @@ var main = function (mealObjects) {
 		}
 	});
 
-	// добавляем вкладку Нет в меню
+	// добавляем вкладку "Нет в продаже"
 	tabs.push({
 		"name": "Нет в продаже",
 		"content": function(callback) {
@@ -198,6 +197,7 @@ var main = function (mealObjects) {
 		}
 	});
 
+	// описываем логику каждой вкладки 
 	tabs.forEach(function (tab) {
 		var $aElement = $("<a>").attr("href",""),
 			$spanElement = $("<span>").text(tab.name);
@@ -216,6 +216,7 @@ var main = function (mealObjects) {
 		});
 	});
 
+	// триггер на клик по первой вкладке
 	$(".tabs a:first-child span").trigger("click");
 }
 

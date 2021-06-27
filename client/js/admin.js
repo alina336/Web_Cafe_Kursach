@@ -1,7 +1,6 @@
-var liaWithEditOrDeleteOnClick = function (User, callback) {
-	
+// формирование строки "Пользователь" со всей информацией и кнопками действия
+var userListItem = function (User, callback) {
 	var $content = $("<ul>");
-
 	var $userListItem = $("<li>").text("ФИО: " + User.username + ", Логин: " + User.login + ", Пароль: " + User.password);
 	$content.append($userListItem);
 	//поменять проверку с имени на тип
@@ -51,7 +50,8 @@ var liaWithEditOrDeleteOnClick = function (User, callback) {
 	return $content;
 }
 
-var addMealToMenu = function(Receipt, callback) {
+// формирование строки "Блюдо" со всей информацией и кнопками действия
+var mealListItem = function(Receipt, callback) {
 
 	var $content = $("<ul>");
 
@@ -293,7 +293,8 @@ var addMealToMenu = function(Receipt, callback) {
 	return $content;
 }
 
-var editOrDeleteMenu = function(Menu, callback) {
+// формирование строки "Меню" со всей информацией и кнопками действия
+var menuListItem = function(Menu, callback) {
 	var $menuListItem = $("<li>").text(Menu.nameOfMenu + " (" + "" + Menu.meals.length + " блюд)"),
 		$editMenu = $("<a>").attr("href", "/menus/" + Menu._id),
 		$removeMenu = $("<a>").attr("href", "/menus/" + Menu._id);
@@ -339,7 +340,7 @@ var main = function(userObjects) {
 	// создание пустого массива с вкладками
 	var tabs = [];
 
-	// добавляем вкладку Пользователи
+	// добавляем вкладку "Пользователи"
 	tabs.push({
 		"name": "Пользователи",
 		"content": function(callback) {
@@ -347,8 +348,7 @@ var main = function(userObjects) {
 				var $content = $("<ul>");
 				$content.append($("<p>").text(""));
 				for (var i = userObjects.length-1; i>=0; i--) {
-					// console.log("test");
-					var $userListItem = liaWithEditOrDeleteOnClick(userObjects[i], function() {
+					var $userListItem = userListItem(userObjects[i], function() {
 						$(".tabs a:first-child span").trigger("click");
 					});
 					$content.append($userListItem);
@@ -362,12 +362,11 @@ var main = function(userObjects) {
 		}
 	});
 	
-	// создаем вкладку Добавить пользователя
+	// создаем вкладку "Новый сотрудник"
 	tabs.push({
 		"name": "Новый сотрудник",
 		"content":function () {
 			$.get("/users.json", function (userObjects) {	
-				// создание $content для Добавить 
 				var $loginInput = $("<input>").addClass("login"), 
 					$passwordInput = $("<input>").addClass("password"),
 					$usernameInput = $("<input>").addClass("username"), 
@@ -413,27 +412,27 @@ var main = function(userObjects) {
 							console.log("изображение есть!!!");
 
 							if (login !== null && login.trim() !== "" && 
-							password !== null && password.trim() !== "" &&
-							username !== null && username.trim() !== "" && 
-							pathToImg !== null && pathToImg.trim() !== "" ) {
-								var newUser = {"login": login, "password" : password, "username" : username, "pathToImg" : pathToImg};
-								$.post("/users", newUser, function(result) {
-									console.log(result); 
-									userObjects.push(newUser); // отправляем на клиент
-									$loginInput.val(""); 
-									$passwordInput.val(""); 
-									$(".tabs a:nth-child(2) span").trigger("click");
-								}).done(function(responde) {
-									console.log(responde);
-									alert('Аккаунт успешно создан!')
-								}).fail(function(jqXHR, textStatus, error) {
-									console.log(error);
-									if (jqXHR.status === 501) {
-										alert("Такой пользователь уже существует!\nИзмените логин и повторите "
-											+ "попытку");
-									} 
-									else { alert("Произошла ошибка!\n"+jqXHR.status + " " + jqXHR.textStatus);	 }
-								});
+								password !== null && password.trim() !== "" &&
+								username !== null && username.trim() !== "" && 
+								pathToImg !== null && pathToImg.trim() !== "" ) {
+									var newUser = {"login": login, "password" : password, "username" : username, "pathToImg" : pathToImg};
+									$.post("/users", newUser, function(result) {
+										console.log(result); 
+										userObjects.push(newUser); // отправляем на клиент
+										$loginInput.val(""); 
+										$passwordInput.val(""); 
+										$(".tabs a:nth-child(2) span").trigger("click");
+									}).done(function(responde) {
+										console.log(responde);
+										alert('Аккаунт успешно создан!')
+									}).fail(function(jqXHR, textStatus, error) {
+										console.log(error);
+										if (jqXHR.status === 501) {
+											alert("Такой пользователь уже существует!\nИзмените логин и повторите "
+												+ "попытку");
+										} 
+										else { alert("Произошла ошибка!\n"+jqXHR.status + " " + jqXHR.textStatus);	 }
+									});
 							} else {
 								alert('Введите все данные!')
 							}
@@ -441,7 +440,10 @@ var main = function(userObjects) {
 					});
 				}
 				$button.on("click", function() { btnfunc(); });
-				$('.tags').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.login').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.password').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.username').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.pathToImg').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
 			});
 		}
 	});
@@ -455,7 +457,7 @@ var main = function(userObjects) {
 				var $text = $("<p>").text("");
 				$content.append($text);
 				for (var i = menusObjects.length-1; i>=0; i--) {
-					var $menuListItem = editOrDeleteMenu(menusObjects[i], function() {
+					var $menuListItem = menuListItem(menusObjects[i], function() {
 						$(".tabs a:nth-child(3) span").trigger("click");
 					});
 					$content.append($menuListItem);
@@ -472,7 +474,7 @@ var main = function(userObjects) {
 		"name": "Создать меню",
 		"content":function (callback) {
 			$.getJSON("/menus.json", function(menuObjects) {
-				var $input = $("<input>").addClass(""), 
+				var $input = $("<input>").addClass("nameOfMenu"), 
 					$button = $("<button>").text("Добавить"),
 					$content = $("<ul>");
 				$content.append($input);
@@ -503,7 +505,7 @@ var main = function(userObjects) {
 					}
 				}
 				$button.on("click", function() { btnfunc(); });
-				$('.tags').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.nameOfMenu').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
 
 
 			}).fail(function (jqXHR, textStatus, error) {
@@ -521,7 +523,7 @@ var main = function(userObjects) {
 			$.getJSON("/meals.json", function (mealObjects) {
 				var $content = $("<ul>");
 				for (var i = mealObjects.length-1; i>=0; i--) {
-					var $mealListItem = addMealToMenu(mealObjects[i], function() {
+					var $mealListItem = mealListItem(mealObjects[i], function() {
 						$(".tabs a:nth-child(5) span").trigger("click");
 					});
 					$content.append($("<p>").text(""));
@@ -568,8 +570,6 @@ var main = function(userObjects) {
 						tags = $tagInput.val().split(","),
 						price = $priceInput.val(),
 						pathToImg = $pathToImg.val();
-
-
 					$.ajax({
 						url: pathToImg,
 						type:'HEAD',
@@ -581,46 +581,45 @@ var main = function(userObjects) {
 						success: function()
 						{
 							console.log("изображение есть!!!");
+							if (description !== null && description.trim() !== "" && 
+								$tagInput.val() !== null && $tagInput.val().trim() !== "" &&
+								price !== null && price.trim() !== "" &&
+								pathToImg !== null && pathToImg.trim() !== "") {
+									// создаем новый элемент списка задач
+									var newMeal = {"description":description, "tags":tags, "status": 'Есть в меню', "price": price, "pathToImg" : pathToImg};						
+									$.post("/meals", newMeal, function(result) {
+										console.log(result); 
+										mealObjects.push(newMeal); // отправляем на клиент
+										$input.val("");
+										$tagInput.val("");
+										$priceInput.val("");
+										$pathToImg.val("");
+										$(".tabs a:nth-child(6) span").trigger("click");
+									})
+									.done(function(responde){ 
+										console.log(responde);
+										alert('Блюдо успешно создано!')
+									})
+									.fail(function(jqXHR, textStatus, error) {
+										console.log(error);
+										if (jqXHR.status === 501) { alert("Блюдо с таким названием уже существует!"); } 
+										else if (jqXHR.status === 500) { alert("Проверьте правильность введенных данных!"); } 
+										else { alert("Произошла ошибка!\n"+jqXHR.status + " " + jqXHR.textStatus);	 }
+									});
 
-						if (description !== null && description.trim() !== "" && 
-							$tagInput.val() !== null && $tagInput.val().trim() !== "" &&
-							price !== null && price.trim() !== "" &&
-							pathToImg !== null && pathToImg.trim() !== "") {
-							// создаем новый элемент списка задач
-							var newMeal = {"description":description, "tags":tags, "status": 'Есть в меню', "price": price, "pathToImg" : pathToImg};
-														
-							$.post("/meals", newMeal, function(result) {
-								console.log(result); 
-								mealObjects.push(newMeal); // отправляем на клиент
-								$input.val("");
-								$tagInput.val("");
-								$priceInput.val("");
-								$pathToImg.val("");
-								$(".tabs a:nth-child(6) span").trigger("click");
-							})
-							.done(function(responde){ 
-								console.log(responde);
-								alert('Блюдо успешно создано!')
-							 })
-							.fail(function(jqXHR, textStatus, error) {
-								console.log(error);
-								if (jqXHR.status === 501) { alert("Блюдо с таким названием уже существует!"); } 
-								else if (jqXHR.status === 500) { alert("Проверьте правильность введенных данных!"); } 
-								else { alert("Произошла ошибка!\n"+jqXHR.status + " " + jqXHR.textStatus);	 }
-							});
-
-							
-						} else {
-							alert('Введите все данные!')
-						}
+								
+							} else {
+								alert('Введите все данные!')
+							}
 					}
 				});
 					
 				}
 				$button.on("click", function() { btnfunc(); });
-				$('.tags').on('keydown',function(e){
-					if (e.which === 13) { btnfunc(); }
-				});
+				$('.description').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.tags').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.price').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+				$('.pathToImg').on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
 			});
 		}
 	});

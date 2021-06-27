@@ -1,13 +1,13 @@
+//проверка корректности пароля
 var checkPassword = function (userObjects, login, password) {
 	console.log(userObjects);
-	var check = 0
+	var check = 0 //проверка пути к изображению (если изображение не найдено, то вернет -1)
 	for (var i = userObjects.length-1; i>=0; i--) {
-		if (userObjects[i].login == login) {
+		if (userObjects[i].login == login) { 
 			console.log("пользователь найден");
 			if (userObjects[i].password == password) {
 				console.log("пароли совпадают");
-				check = userObjects[i].pathToImg;
-				
+				check = userObjects[i].pathToImg; //возвращаем строку-путь к изображению
 				if (userObjects[i].pathToImg == "") {
 					check = -1;
 				}
@@ -19,6 +19,7 @@ var checkPassword = function (userObjects, login, password) {
 	return check
 }
 
+//заполнение сайта при первом запуске (при создании аккаунта админа)
 var initialize = function (password, callback) {
 	console.log("Первый запуск приложения!");
 	// добавляем пользователей
@@ -35,6 +36,7 @@ var initialize = function (password, callback) {
 			alert("Произошла ошибка!\n"+jqXHR.status + " " + jqXHR.textStatus);	 
 		});
 
+		//создаем пользователя
 		var user = {"login": "user-1", "password" : "1111", "username" : "Иванов Иван Иванович", "pathToImg" : "/images/users/user1.jpeg"};
 		$.post("/users", user, function(result) {
 			console.log(result); 
@@ -47,7 +49,7 @@ var initialize = function (password, callback) {
 		});
 	});
 
-	// добавляем меню
+	// создаем меню
 	$.get("/menus.json", function (userObjects) {
 		var menu = {"nameOfMenu" : "Фастфуд"};
 		$.post("/menus", menu, function(result) {
@@ -61,7 +63,7 @@ var initialize = function (password, callback) {
 		});
 	});
 
-	// добавляем блюда
+	// создаем блюдо
 	$.get("/meals.json", function (userObjects) {
 		var meal = {"description": "Бургер", "tags": ["Булка","Котлета","Сыр","Помидорка"], "status": 'Есть в меню', "price": 50, "pathToImg" : "/images/meals/burger.jpeg"};
 		$.post("/meals", meal, function(result) {
@@ -75,7 +77,6 @@ var initialize = function (password, callback) {
 		});	
 	})
 
-
 }
 
 var main = function (UsersObjects) {
@@ -88,16 +89,18 @@ var main = function (UsersObjects) {
 	$loginInput.attr('placeholder','Логин');
 	$passwordInput.attr('placeholder','Пароль');
 
-	$butLogin.on("click", function() {
+	//обработка нажатия на кнопку "войти"
+	function btnfunc() {
 		var login = $loginInput.val();
 		var password = $passwordInput.val();
 
+		// переходим на страницу админа
 		if (login == "admin" && password !== null && password.trim() !== "") {
 			$.ajax({
 				'url': '/users/'+login,
 				'type': 'GET'
 			}).done(function(responde) {
-				console.log("все норм, заходим под админом");
+				console.log("заходим под админом");
 				let pathToImg = checkPassword(UsersObjects, login, password);
 				if (pathToImg != 0) {
 					window.location.replace('users/' + login + '/');
@@ -105,9 +108,8 @@ var main = function (UsersObjects) {
 					alert("Пароль администратора введен неверно!!!");	
 				}
 
-				
 			}).fail(function(jqXHR, error) {
-				console.log("все не норм, ошибка");
+				console.log("ошибка");
 				if (jqXHR.status) {
 					initialize(password, function() {
 						$butLogin.trigger("click");
@@ -119,7 +121,7 @@ var main = function (UsersObjects) {
 				}
 			});
 		} 
-
+		// переходим на страницу работника
 		else if (login !== null && login.trim() !== "" && password !== null && password.trim() !== "") {
 			let pathToImg = checkPassword(UsersObjects, login, password);
 			if (pathToImg != 0) {
@@ -138,10 +140,15 @@ var main = function (UsersObjects) {
 			else {
 				alert("Пароль введен неверно или пользователя не существует!");	
 			};
-		} else {
+		} 
+		else {
 			alert("Одно из полей пустое!");	
 		}
-	});
+	}
+	$butLogin.on("click", function() { btnfunc(); });
+	$loginInput.on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+	$passwordInput.on('keydown',function(e){ if (e.which === 13) { btnfunc(); } });
+
 
 	$("main .authorization").append($info);
 	$("main .authorization").append($loginInput);
